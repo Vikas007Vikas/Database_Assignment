@@ -47,6 +47,30 @@ class Btree:
             return count
         return 0
 
+    def range_count(self,key1,key2):
+        count = 0
+        if self.root!=None:
+            req_node = self.root.range_count(key1,key2)
+            flag = 0
+            while True:
+                i = 0
+                if req_node is None:
+                    break
+                while i<req_node.n:
+                    if req_node.keys[i]>=key1 and req_node.keys[i]<=key2:
+                        #print 'ans:',req_node.keys[i]
+                        count += 1
+                    elif req_node.keys[i]>key2:
+                        flag = 1
+                        break
+                    i+=1
+                if flag == 1:
+                    break
+                #print req_node.next
+                req_node = req_node.next
+            return count
+        return 0
+
 class BtreeNode:
     def __init__(self,degree,isleaf):
         self.degree = degree
@@ -126,7 +150,7 @@ class BtreeNode:
                         child.n -= 1
                 else:
                     child.keys[i]=temp_array[i]
-
+            child.next = split_child
             return temp_array[split_index],split_child
         else:
             split_child = BtreeNode(child.degree,child.isleaf)
@@ -158,7 +182,7 @@ class BtreeNode:
             #print 'ssss:',i
             child_list[i+2] = pointer
 
-            print child_list
+            #print child_list
 
 
             k=0
@@ -215,6 +239,14 @@ class BtreeNode:
             return self.children[i].count_key(key)
         return self.keys
 
+    def range_count(self,key1,key2):
+        if not self.isleaf:
+            i=0
+            while i<self.n and key1>=self.keys[i]:
+                i += 1
+            return self.children[i].range_count(key1,key2)
+        return self
+
     def isblockfull(self):
         #print self.n,self.degree
         return self.n == self.degree
@@ -234,6 +266,7 @@ class BtreeNode:
 
 
 
+
 def executequeries(file_name):
     lines = [line.rstrip('\n') for line in open(file_name,'r')]
     #print lines
@@ -250,9 +283,9 @@ def executequeries(file_name):
                 print 'No'
         elif line[0]=='COUNT':
             print tree.count_key(int(line[1]))
-        # elif line[0]=='RANGE':
-        #     tree.range(int(line[1]),int(line[2]))
-    #tree.print_tree(1)
+        elif line[0]=='RANGE':
+            print tree.range_count(int(line[1]),int(line[2]))
+    tree.print_tree(1)
 args = sys.argv
 file_name = args[1]
 m = args[2]
